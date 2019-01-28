@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtWidgets, uic
 from kafka import KafkaConsumer
 from random import randint
 import json, sys, os, datetime, configparser
-# ~ import subprocess,platform,  time
+
 
 
 class DownloadThread(QtCore.QThread):
@@ -193,6 +193,12 @@ class MainWindow(QtWidgets.QDialog):
 		self.downloader.data_downloaded.connect(self.on_data_ready)
 		self.downloader.start()
 
+	def writeToFile(self,message,value):
+		if self.checkBoxFile.isChecked():
+			with open(self.fileName, "a") as f:
+				f.write("----------------"+ os.linesep)
+				f.write(message + os.linesep)
+				f.write(value + os.linesep + os.linesep)	
 		
 	def on_data_ready(self, message,payload):
 		message =   "%s : %d : %d key = %s" % (message.topic, message.partition, message.offset, message.key)
@@ -209,12 +215,9 @@ class MainWindow(QtWidgets.QDialog):
 			self.editNotifications.append(self.defaultText % "----------------")			
 			self.editNotifications.append(self.defaultText % message)
 			self.editNotifications.append(self.defaultText % value)
-
-			if self.checkBoxFile.isChecked():
-				with open(self.fileName, "a") as f:
-					f.write("----------------"+ os.linesep)
-					f.write(message + os.linesep)
-					f.write(value + os.linesep + os.linesep)	
+			
+			self.writeToFile(message,value)
+	
 		else:
 			upperValue = value		
 			upperMessage = message		
@@ -228,11 +231,8 @@ class MainWindow(QtWidgets.QDialog):
 				message = message.replace(self.filterText, self.styleText % self.filterText, 20)
 				self.editNotifications.append(self.defaultText % message)
 				self.editNotifications.append(self.defaultText % value)
-				if self.checkBoxFile.isChecked():
-					with open(self.fileName, "a") as f:
-						f.write("----------------"+ os.linesep)
-						f.write(upperMessage + os.linesep)
-						f.write(upperValue + os.linesep + os.linesep)	
+				
+				self.writeToFile(message,value)
 
 
 if __name__ == '__main__': 
